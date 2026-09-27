@@ -1,0 +1,12 @@
+dist
+bin/*
+lib/*
+PortMaster
+
+!bin/.gitkeep
+!lib/.gitkeep
+
+files/minui-presenter
+
+# Test/debug log captures
+PORTS-*.txt

@@ -1,0 +1,16 @@
+{
+    "change_channel": false,
+    "disclaimer": true,
+    "featured_ports_checked": "2020-01-01T00:00:00.000000",
+    "first-run": true,
+    "music-disabled": true,
+    "porters_checked": "2020-01-01T00:00:00.000000",
+    "ports_info_checked": "2020-01-01T00:00:00.000000",
+    "release_channel": "stable",
+    "sfx-disabled": true,
+    "show_experimental": false,
+    "theme": "default_theme",
+    "theme-scheme": "Darkest Mode",
+    "update_checked": "2020-01-01T00:00:00.000000",
+    "version": 2
+}

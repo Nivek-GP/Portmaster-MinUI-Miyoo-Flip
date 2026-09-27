@@ -1,0 +1,16 @@
+{
+  "name": "PORTS",
+  "version": "1.0.0",
+  "type": "EMU",
+  "description": "A Emu Pak for PortMaster which includes everything needed and requires no additional software.",
+  "author": "Nivek-GP",
+  "repo_url": "https://github.com/Nivek-GP/minui-portmaster-flip",
+  "release_filename": "PORTS.pakz",
+  "platforms": [
+    "my355"
+  ],
+  "update_ignore": [
+    "PortMaster"
+  ],
+  "launch": "launch.sh"
+}

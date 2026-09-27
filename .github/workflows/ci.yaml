@@ -1,0 +1,102 @@
+---
+name: "ci"
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches:
+      - "*"
+  push:
+    branches:
+      - main
+
+permissions:
+  attestations: write
+  id-token: write
+  contents: write
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Run shellcheck
+        # --severity=error is the starting baseline. Once the existing
+        # warnings (e.g. SC2086 line 245, SC2034 line 463) are cleaned up
+        # we can ratchet up to --severity=warning.
+        run: shellcheck --severity=error launch.sh files/progressor
+
+  build:
+    name: build
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v4.0.0
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v4.0.0
+
+      - name: Create release
+        run: make clean build release
+
+      - name: Get Pak Name
+        id: pak-name
+        run: |
+          echo "PAK_NAME=$(jq -r .name pak.json)" >> $GITHUB_OUTPUT
+
+      - name: Attest Build Provenance
+        uses: actions/attest-build-provenance@v4.1.0
+        with:
+          subject-path: |
+            dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip
+            dist/${{ steps.pak-name.outputs.PAK_NAME }}.pakz
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: "${{ steps.pak-name.outputs.PAK_NAME }}-releases"
+          path: |
+            dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip
+            dist/${{ steps.pak-name.outputs.PAK_NAME }}.pakz
+
+  test-release:
+    name: test-release
+    runs-on: ubuntu-24.04
+    needs: build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Get Pak Name
+        id: pak-name
+        run: |
+          echo "PAK_NAME=$(jq -r .name pak.json)" >> $GITHUB_OUTPUT
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: "${{ steps.pak-name.outputs.PAK_NAME }}-releases"
+          path: "dist"
+
+      - name: Validate Artifacts exist
+        run: |
+          if [ ! -f "dist/${{ steps.pak-name.outputs.PAK_NAME }}.pak.zip" ]; then
+            echo "Artifact .pak.zip does not exist"
+            exit 1
+          fi
+          if [ ! -f "dist/${{ steps.pak-name.outputs.PAK_NAME }}.pakz" ]; then
+            echo "Artifact .pakz does not exist"
+            exit 1
+          fi
